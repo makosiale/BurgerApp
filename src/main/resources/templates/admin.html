@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .supply-button{
+            margin-top: 7px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+        .header h1 {
+            margin: 0; /* Убираем отступы у заголовка */
+            flex-grow: 1; /* Даем заголовку пространство для растяжения */
+            text-align: center; /* Выравниваем текст по центру */
+        }
+
+        .header form {
+            margin: 10px; /* Убираем отступы у формы */
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 5px 5px 0 0;
+            background-color: #f1f1f1;
+        }
+
+        .tab.active {
+            background-color: white;
+            border-bottom: none;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            margin-top: 20px;
+        }
+
+        .item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .select-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background-color: #DC3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 24px
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+
+
+        button {
+            padding: 10px 15px;
+            background-color: #2f7dd5; /* Красный цвет */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #092788; /* Темнее красный при наведении */
+        }
+
+        select, input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .logout-container {
+            text-align: right; /* Выравнивание кнопки по правому краю */
+        }
+    </style>
+
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Welcome, <span th:text="${#authentication.name}">Admin</span>!</h1>
+        <form action="user">
+            <button>UserPage</button>
+        </form>
+    </div>
+    <div class="logout-container">
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+
+
+    <div class="tabs">
+        <div class="tab active" data-tab="view-ingredients">View Ingredients</div>
+        <div class="tab" data-tab="add-ingredient">Add Ingredient</div>
+        <div class="tab" data-tab="view-orders">View Orders</div>
+        <div class="tab" data-tab="create-burger">Create Burger</div>
+    </div>
+
+    <div id="view-ingredients" class="tab-content active">
+        <div class="section">
+            <h2>Ingredients on Stock</h2>
+            <div id="ingredientList">
+                <p>Loading ingredients...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-ingredient" class="tab-content">
+        <div class="section">
+            <h2>Add New Ingredient</h2>
+            <input type="text" id="ingredientName" placeholder="Ingredient Name">
+            <input type="number" id="ingredientResidue" placeholder="Residue" min="1">
+            <button id="submitIngredient">Add Ingredient</button>
+        </div>
+    </div>
+
+    <div id="view-orders" class="tab-content">
+        <div class="section">
+            <h2>All Orders</h2>
+            <div id="orderList">
+                <p>Loading orders...</p>
+            </div>
+
+            <!-- Кнопка для получения общей выручки и поле для отображения суммы -->
+            <div id="revenueSection">
+                <button id="getTotalRevenueBtn">Получить общую выручку</button>
+                <div id="totalRevenue">Общая выручка: <span id="revenueAmount">0</span></div>
+            </div>
+
+            <!-- Блок выбора сотрудника -->
+            <div id="employeeAssignment" class="section">
+                <h3>Assign Employee to Order</h3>
+                <div id="employeeOrderList">
+                    <p>Loading orders for assignment...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="create-burger" class="tab-content">
+        <div class="section">
+            <h2>Create New Burger</h2>
+            <div id="burgerIngredients">
+                <div class="select-group">
+                    <select class="ingredient-dropdown"></select>
+                    <input type="number" class="ingredient-quantity" min="1" placeholder="Quantity for Burger">
+                    <button class="remove-ingredient">Remove</button>
+                </div>
+            </div>
+            <button id="addIngredient">Add Ingredient</button>
+            <button id="submitBurger">Create Burger</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let ingredients = [];
+    let orders = [];
+
+    async function fetchIngredients() {
+        try {
+            const response = await fetch('/api/admin/ingredients');
+            ingredients = await response.json();
+            renderIngredients();
+            updateIngredientDropdowns();
+        } catch (error) {
+            console.error('Failed to fetch ingredients:', error);
+        }
+    }
+
+    async function fetchOrders() {
+        try {
+            const response = await fetch('/api/admin/orders');
+            orders = await response.json();
+            renderOrders();
+        } catch (error) {
+            console.error('Failed to fetch orders:', error);
+        }
+    }
+
+    function renderIngredients() {
+        const ingredientList = document.getElementById('ingredientList');
+        ingredientList.innerHTML = '';
+        if (ingredients.length === 0) {
+            ingredientList.innerHTML = '<p>No ingredients found.</p>';
+        } else {
+            ingredients.forEach(ingredient => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                <div>${ingredient.name} - Residue: ${ingredient.residue}</div>
+                <button class="supply-button" data-id="${ingredient.id}">Supply</button>
+            `;
+                ingredientList.appendChild(div);
+
+                // Обработчик для кнопки "Supply"
+                div.querySelector('.supply-button').addEventListener('click', () => {
+                    const newResidue = prompt('Enter the quantity to supply:');
+                    if (newResidue && !isNaN(newResidue) && parseInt(newResidue) > 0) {
+                        supplyIngredient(ingredient.id, parseInt(newResidue));
+                    } else {
+                        alert('Please enter a valid quantity.');
+                    }
+                });
+            });
+        }
+    }
+
+    async function supplyIngredient(ingredientId, quantity) {
+        try {
+            const response = await fetch(`admin/ingredients/supply/${ingredientId}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({supplyQuantity: quantity})
+            });
+            if (response.ok){
+                const message = await response.text();
+                showSuccessMessage("Поставка прошла успешна");
+            }
+            fetchIngredients();  // Перезагружаем ингредиенты, чтобы отобразить обновленный остаток
+        } catch (error) {
+            console.error('Failed to supply ingredient:', error);
+            showErrorMessage('Произошла ошибка при отправке запроса. Попробуйте снова.')
+        }
+    }
+    function showSuccessMessage(message){
+        alert(`Успех: ${message}`);
+    }
+
+    function showErrorMessage(error){
+        alert(`Ошибка: ${error}`);
+    }
+
+    document.getElementById('submitIngredient').addEventListener('click', async () => {
+        const name = document.getElementById('ingredientName').value;
+        const residue = parseInt(document.getElementById('ingredientResidue').value);
+
+        if (!name || residue <= 0) {
+            alert('Please provide valid ingredient details.');
+            return;
+        }
+
+        try {
+            const response = await fetch('admin/ingredients/newIngredient', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, residue})
+            });
+            if (response.ok){
+                const message = await response.text();
+                showSuccessMessage(message);
+            }else{
+                const error = await response.text();
+                showErrorMessage(error.message);
+            }
+        } catch (error) {
+            console.error('Failed to add ingredient:', error);
+            showErrorMessage('Произошла ошибка при добавлении ингредиента.');
+        }
+    });
+
+    document.getElementById('addIngredient').addEventListener('click', () => {
+        const div = document.createElement('div');
+        div.className = 'select-group';
+        div.innerHTML = `
+            <select class="ingredient-dropdown"></select>
+            <input type="number" class="ingredient-quantity" min="1" placeholder="Quantity for Burger">
+            <button class="remove-ingredient">Remove</button>
+        `;
+
+        document.getElementById('burgerIngredients').appendChild(div);
+        updateIngredientDropdowns();
+
+        div.querySelector('.remove-ingredient').addEventListener('click', () => {
+            div.remove();
+            updateIngredientDropdowns();
+        });
+    });
+
+    document.getElementById('submitBurger').addEventListener('click', async () => {
+        const ingredients = Array.from(document.querySelectorAll('.select-group')).map(group => {
+            const ingredientId = parseInt(group.querySelector('.ingredient-dropdown').value);
+            const quantity = parseInt(group.querySelector('.ingredient-quantity').value);
+            return {ingredientId, quantity};
+        });
+
+        if (ingredients.length === 0) {
+            alert('Add at least one ingredient to the burger.');
+            return;
+        }
+
+        try {
+            await fetch('/api/admin/burgers/newBurger', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ingredients})
+            });
+        } catch (error) {
+            console.error('Failed to create burger:', error);
+        }
+    });
+
+    function updateIngredientDropdowns() {
+        const dropdowns = document.querySelectorAll('.ingredient-dropdown');
+        dropdowns.forEach(dropdown => {
+            dropdown.innerHTML = ''
+            // Create a default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select an Ingredient';
+            dropdown.appendChild(defaultOption);
+
+            // Add ingredients as options
+            ingredients.forEach(ingredient => {
+                const option = document.createElement('option');
+                option.value = ingredient.id;
+                option.textContent = `${ingredient.name} - Residue: ${ingredient.residue}`;
+                dropdown.appendChild(option);
+            });
+        });
+    }
+
+    function renderOrders() {
+        const orderList = document.getElementById('orderList');
+        orderList.innerHTML = '';
+
+        if (orders.length === 0) {
+            orderList.innerHTML = '<p>No orders found.</p>';
+        } else {
+            orders.forEach(order => {
+                const div = document.createElement('div');
+                div.className = 'item';
+
+                // Формируем HTML для одного заказа
+                div.innerHTML = `
+                <div>Order ID: ${order.orderId}</div>
+                <div>Customer: ${order.username}</div>
+                <div>Employee: ${order.employee}</div>
+                <div>Burgers:</div>
+                <ul>
+                    ${order.burgers.map(b => `<li>${b.name} - ${b.quantity}</li>`).join('')}
+                </ul>
+                <div>Total Price: ${order.totalPrice.toFixed(2)} руб.</div>
+            `;
+
+                orderList.appendChild(div);
+            });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        async function fetchEmployees() {
+            try {
+                const response = await fetch("/api/admin/employees");
+                if (!response.ok) {
+                    throw new Error('Ошибка сети');
+                }
+                return await response.json();
+            } catch (error) {
+                console.error("Ошибка загрузки сотрудников:", error);
+                return [];
+            }
+        }
+
+        async function getTotalRevenue() {
+            try {
+                const response = await fetch("/api/admin/orders/total-revenue");
+                if (!response.ok) {
+                    throw new Error('Ошибка получения общей выручки');
+                }
+                const data = await response.json();
+                document.getElementById('revenueAmount').textContent = data.totalRevenue;
+            } catch (error) {
+                console.error("Ошибка получения выручки:", error);
+                document.getElementById('revenueAmount').textContent = 'Ошибка';
+            }
+        }
+
+        // Обработчик для кнопки получения общей выручки
+        document.getElementById('getTotalRevenueBtn').addEventListener("click", getTotalRevenue);
+
+        async function renderEmployeeAssignment() {
+            const employeeOrderList = document.getElementById('employeeOrderList');
+            employeeOrderList.innerHTML = '';
+
+            if (orders.length === 0) {
+                employeeOrderList.innerHTML = '<p>No orders found.</p>';
+                return;
+            }
+
+            // Создаем элементы заказов
+            orders.forEach(order => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                <div>Order ID: ${order.orderId}</div>
+                <div>Customer: ${order.username}</div>
+                <div>Employee:
+                    <select id="employee-select-${order.orderId}" class="form-select">
+                        <option value="">Выберите сотрудника</option>
+                    </select>
+                </div>
+                <button class="assign-employee-btn" data-order-id="${order.orderId}">Assign Employee</button>
+            `;
+                employeeOrderList.appendChild(div);
+            });
+
+            // Загружаем сотрудников и заполняем селекторы
+            const employees = await fetchEmployees();
+            const employeeSelectElements = document.querySelectorAll(".form-select");
+            employeeSelectElements.forEach(select => {
+                employees.forEach(employee => {
+                    const option = document.createElement("option");
+                    option.value = employee.id;
+                    option.textContent = employee.name;
+                    select.appendChild(option);
+                });
+            });
+
+            // Обработчик для кнопок закрепления
+            const assignButtons = document.querySelectorAll(".assign-employee-btn");
+            assignButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const orderId = this.dataset.orderId;
+                    const selectElement = document.querySelector(`#employee-select-${orderId}`);
+                    const employeeId = selectElement.value;
+
+                    if (!employeeId) {
+                        alert("Выберите сотрудника перед подтверждением!");
+                        return;
+                    }
+
+                    // Отправляем данные на сервер
+                    fetch(`/api/admin/orders/${orderId}/assign`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ employeeId })
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                alert("Сотрудник успешно закреплен за заказом!");
+/*                                location.reload(); // Обновляем страницу*/
+                                fetchOrders()
+
+                            } else {
+                                alert("Ошибка при закреплении сотрудника.");
+                            }
+                        })
+                        .catch(error => console.error("Ошибка при запросе:", error));
+                });
+            });
+        }
+
+        // Вызов функции для рендеринга заказов и сотрудников
+        fetchOrders().then(renderEmployeeAssignment);
+    });
+
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        // Display logout alert
+        alert('You have logged out');
+        // Redirect to the home page
+        window.location.href = '/';
+    });
+
+    // Event listener for tab switching
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const activeTab = tab.getAttribute('data-tab');
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                if (content.id === activeTab) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            // Fetch data for the current tab
+            if (activeTab === 'view-ingredients') {
+                fetchIngredients();
+            } else if (activeTab === 'view-orders') {
+                fetchOrders();
+            }
+        });
+    });
+
+
+
+    // Initial data fetch
+    fetchIngredients();
+    fetchOrders();
+</script>
+</body>
+</html>

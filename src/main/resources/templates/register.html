@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-image: url("static/images/phone.png");
+        }
+
+        .registration-form {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .registration-form h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        .form-group small {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .form-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-button:hover {
+            background-color: #0056b3;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .form-footer a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .form-footer small {
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="registration-form">
+    <h2>Регистрация</h2>
+    <form id="registrationForm">
+        <div class="form-group">
+            <label for="username">Юзернейм</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Пароль</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+        <div class="form-group">
+            <label for="name">Имя</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name" required>
+        </div>
+        <div class="form-group">
+            <label for="telephone">Телефон</label>
+            <input type="tel" id="telephone" name="telephone" required placeholder="+79999999999" pattern="\+7\d{10}">
+            <small>Формат: +79999999999</small>
+        </div>
+        <button type="submit" class="form-button">Зарегистрироваться</button>
+    </form>
+    <div class="form-footer">
+        <small>Есть аккаунт? <a href="/login">Войти</a></small>
+    </div>
+</div>
+</body>
+
+<script>
+    document.getElementById("registrationForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const formData = {
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value,
+            name: document.getElementById("name").value,
+            telephone: document.getElementById("telephone").value
+        };
+
+        try {
+            const response = await fetch("api/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(formData)
+                }
+            );
+
+            if (response.ok){
+                const message = response.text();
+                alert(message)
+                window.location.href = "/login";
+            }else if (response.status === 409) {
+                const errorText = await response.text();
+                alert(errorText);
+            }else{
+                alert("Не удалось зарегистрироваться. Пожалуйста, попробуйте снова.");
+            }
+        }catch (error){
+            console.error("Ошибка запроса:",error);
+            alert("Ошибка подключения к серверу. Проверьте сеть.");
+        }
+    });
+</script>
+
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Orders</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <script defer>
+        document.addEventListener("DOMContentLoaded", () => {
+            const burgersFromDB = ["Cheeseburger", "Veggie Burger", "Chicken Burger", "Bacon Burger"];
+            const orderForm = document.getElementById("orderForm");
+            const ordersList = document.getElementById("ordersList");
+            const burgerSelectTemplate = document.getElementById("burgerSelectTemplate");
+            const ordersContainer = document.getElementById("ordersContainer");
+            const placeOrderTab = document.getElementById("placeOrderTab");
+            const viewOrdersTab = document.getElementById("viewOrdersTab");
+            const orderPositions = document.getElementById("orderPositions");
+
+            let orders = []; // This will store fetched user orders
+
+            // Toggle between tabs
+            placeOrderTab.addEventListener("click", () => {
+                orderForm.style.display = "block";
+                ordersContainer.style.display = "none";
+            });
+
+            viewOrdersTab.addEventListener("click", () => {
+                orderForm.style.display = "none";
+                ordersContainer.style.display = "block";
+                fetchOrders();
+            });
+
+            // Add a burger position
+            document.getElementById("addPositionButton").addEventListener("click", () => {
+                const selectedBurgers = Array.from(orderPositions.querySelectorAll("select"))
+                    .map(select => select.value);
+                const availableBurgers = burgersFromDB.filter(burger => !selectedBurgers.includes(burger));
+
+                if (availableBurgers.length > 0) {
+                    const newSelect = burgerSelectTemplate.content.cloneNode(true);
+                    const selectElement = newSelect.querySelector("select");
+
+                    availableBurgers.forEach(burger => {
+                        const option = document.createElement("option");
+                        option.value = burger;
+                        option.textContent = burger;
+                        selectElement.appendChild(option);
+                    });
+
+                    orderPositions.appendChild(newSelect);
+                } else {
+                    alert("No more burgers available to add.");
+                }
+            });
+
+            // Submit order
+            document.getElementById("submitOrderButton").addEventListener("click", async () => {
+                const orderData = Array.from(orderPositions.querySelectorAll("div.burger-select"))
+                    .map(position => {
+                        const burgerName = position.querySelector("select").value;
+                        const quantity = position.querySelector("input").value;
+                        return { burgerName, quantity: Number(quantity) };
+                    });
+
+                try {
+                    const response = await fetch("/api/orders", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(orderData),
+                    });
+
+                    if (response.ok) {
+                        alert("Order placed successfully!");
+                        orderPositions.innerHTML = ""; // Clear form
+                    } else {
+                        alert("Failed to place order.");
+                    }
+                } catch (error) {
+                    console.error("Error placing order:", error);
+                }
+            });
+
+            // Fetch user orders
+            async function fetchOrders() {
+                try {
+                    const response = await fetch("/api/orders/user");
+                    if (response.ok) {
+                        orders = await response.json();
+                        renderOrders();
+                    } else {
+                        alert("Failed to fetch orders.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching orders:", error);
+                }
+            }
+
+            // Render fetched orders
+            function renderOrders() {
+                ordersList.innerHTML = "";
+                if (orders.length === 0) {
+                    ordersList.textContent = "No orders found.";
+                    return;
+                }
+
+                orders.forEach(order => {
+                    const orderItem = document.createElement("li");
+                    orderItem.textContent = `Order #${order.id}: ${order.items.map(item => `${item.burgerName} x${item.quantity}`).join(", ")}`;
+                    ordersList.appendChild(orderItem);
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Welcome, User!</h1>
+    <div class="mt-4">
+        <button id="placeOrderTab" class="btn btn-primary">Place Order</button>
+        <button id="viewOrdersTab" class="btn btn-secondary">View Orders</button>
+    </div>
+
+    <!-- Order Form -->
+    <div id="orderForm" style="display: none;">
+        <h2>Place Your Order</h2>
+        <div id="orderPositions"></div>
+
+        <button id="addPositionButton" class="btn btn-success mt-3">Add Burger</button>
+        <button id="submitOrderButton" class="btn btn-primary mt-3">Submit Order</button>
+    </div>
+
+    <!-- Orders List -->
+    <div id="ordersContainer" style="display: none;">
+        <h2>Your Orders</h2>
+        <ul id="ordersList" class="list-group"></ul>
+    </div>
+</div>
+
+<!-- Hidden Template for Burger Select -->
+<template id="burgerSelectTemplate">
+    <div class="burger-select mt-2">
+        <select class="form-select"></select>
+        <input type="number" class="form-control mt-2" placeholder="Quantity" min="1" value="1">
+    </div>
+</template>
+</body>
+</html>
