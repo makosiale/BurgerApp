@@ -22,11 +22,11 @@ public class RegistrationService {
     private final UsersroleRepository usersroleRepository;
     private final RoleRepository roleRepository;
 
-    public void registrationNewUser(UserDto userDto){
-        if(userRepository.findByUsername(userDto.username()).isPresent()){
+    public void registrationNewUser(UserDto userDto) {
+        if (userRepository.findByUsername(userDto.username()).isPresent()) {
             throw new UserAlreadyExistsException("Пользователь с таким username уже сущетсвует!\n" +
                     "Попробуйте ввести другой.");
-        }else{
+        } else {
             System.out.println("Есть контакт в сервисе");
             User user = new User();
             user.setName(userDto.name());

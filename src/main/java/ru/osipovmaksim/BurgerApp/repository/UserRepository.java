@@ -1,7 +1,6 @@
 package ru.osipovmaksim.BurgerApp.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.osipovmaksim.BurgerApp.dto.UserDto;
 import ru.osipovmaksim.BurgerApp.entity.User;
 
 import java.util.Optional;

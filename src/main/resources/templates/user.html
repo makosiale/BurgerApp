@@ -1,168 +1,54 @@
-    <!DOCTYPE html>
-<html lang="ru">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добро пожаловать!</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .order-form {
-            margin-bottom: 20px;
-        }
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        select, input[type="number"] {
-            padding: 5px;
-            margin-right: 10px;
-        }
-        button {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .order-list {
-            margin-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/user.css">
+    <title>UserPage</title>
+    <link id="admin-favicon" rel="icon" href="/images/admin.jpg" type="image/x-icon" style="display:none;">
+    <link id="user-favicon" rel="icon" href="/images/user.png" type="image/x-icon" style="display:none;">
 </head>
 <body>
 <div class="container">
-    <h1>Добро пожаловать, <span id="username">Пользователь</span>!</h1>
-
-    <div class="order-form">
-        <h2>Сделать заказ</h2>
-        <div id="order-items"></div>
-        <button onclick="addOrderItem()">Добавить бургер</button>
+    <div class="header">
+        <h1>Welcome, <span th:text="${#authentication.name}">User</span>!</h1>
+        <div class="header-buttons">
+            <form action="admin" th:if="${#authentication.authorities.?[authority == 'ROLE_ADMIN'].size() > 0}">
+                <button>AdminPage</button>
+            </form>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
     </div>
 
-    <button onclick="placeOrder()">Оформить заказ</button>
+    <div class="tabs">
+        <div class="tab active" data-tab="create-order">Create Order</div>
+        <div class="tab" data-tab="view-orders">View Orders</div>
+    </div>
 
-    <div class="order-list" id="order-list">
-        <h2>Ваши заказы</h2>
-        <ul id="orders"></ul>
+    <div id="create-order" class="tab-content active">
+        <div class="add-position">
+            <h2>Create Order</h2>
+            <div id="positions">
+                <div class="burger-select">
+                    <select class="burger-dropdown"></select>
+                    <input type="number" min="1" value="1" class="burger-quantity" placeholder="Quantity">
+                    <button class="remove-position">Remove</button>
+                </div>
+            </div>
+            <button id="addPosition">Add Burger</button>
+            <button id="submitOrder">Submit Order</button>
+        </div>
+    </div>
+
+    <div id="view-orders" class="tab-content">
+        <div class="order-section">
+            <h2>Your Orders</h2>
+            <div id="orderList">
+                <p>Loading orders...</p>
+            </div>
+        </div>
     </div>
 </div>
-
-<script>
-    const burgers = [
-        { id: 1, name: "Чизбургер" },
-        { id: 2, name: "Биг Мак" },
-        { id: 3, name: "Вегетарианский бургер" },
-        { id: 4, name: "Бургер с курицей" },
-        { id: 5, name: "Бургер с рыбой" }
-    ];
-
-    let orderItems = [];
-
-    function addOrderItem() {
-        const orderItemsDiv = document.getElementById("order-items");
-
-        // Создание элемента для нового заказа
-        const orderItemDiv = document.createElement("div");
-        orderItemDiv.className = "order-item";
-
-        // Создание выпадающего списка для выбора бургера
-        const select = document.createElement("select");
-        select.onchange = () => updateSelectedBurgers();
-
-        // Добавление опций в выпадающий список
-        burgers.forEach(burger => {
-            const option = document.createElement("option");
-            option.value = burger.id;
-            option.textContent = burger.name;
-
-            // Проверяем, был ли бургер уже выбран
-            if (!orderItems.some(item => item.burgerId === burger.id)) {
-                select.appendChild(option);
-            }
-        });
-
-        // Поле для ввода количества
-        const quantityInput = document.createElement("input");
-        quantityInput.type = "number";
-        quantityInput.min = "1";
-        quantityInput.value = "1";
-
-        // Кнопка для удаления позиции
-        const removeButton = document.createElement("button");
-        removeButton.textContent = "Удалить";
-        removeButton.onclick = () => orderItemDiv.remove();
-
-        orderItemDiv.appendChild(select);
-        orderItemDiv.appendChild(quantityInput);
-        orderItemDiv.appendChild(removeButton);
-
-        orderItemsDiv.appendChild(orderItemDiv);
-    }
-
-    function updateSelectedBurgers() {
-        // Обновляем список доступных бургеров
-        const selectedBurgers = Array.from(document.querySelectorAll('.order-item select')).map(select => select.value);
-        const selects = document.querySelectorAll('.order-item select');
-
-        selects.forEach(select => {
-            Array.from(select.options).forEach(option => {
-                if (selectedBurgers.includes(option.value)) {
-                    option.disabled = true; // Делаем недоступными уже выбранные бургеры
-                } else {
-                    option.disabled = false; // Разрешаем доступ к невыбранным
-                }
-            });
-        });
-    }
-
-    function placeOrder() {
-        const ordersList = document.getElementById("orders");
-        ordersList.innerHTML = ""; // Очистка списка заказов
-
-        const orderItemsDivs = document.querySelectorAll(".order-item");
-        orderItemsDivs.forEach(itemDiv => {
-            const select = itemDiv.querySelector("select");
-            const quantityInput = itemDiv.querySelector("input[type='number']");
-
-            const burgerId = select.value;
-            const quantity = quantityInput.value;
-
-            if (burgerId) {
-                const burgerName = burgers.find(burger => burger.id == burgerId).name;
-
-                const listItem = document.createElement("li");
-                listItem.textContent = `${burgerName} - ${quantity} шт.`;
-                ordersList.appendChild(listItem);
-            }
-        });
-
-        alert("Заказ оформлен!");
-    }
-
-    // Инициализация страницы
-    document.getElementById("username").textContent = "Иван"; // Пример имени пользователя
-</script>
+<script src="/js/user.js"></script>
 </body>
 </html>

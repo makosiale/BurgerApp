@@ -3,7 +3,6 @@ package ru.osipovmaksim.BurgerApp.service;
 import jakarta.transaction.Transactional;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import ru.osipovmaksim.BurgerApp.dto.IngredientDto;
 import ru.osipovmaksim.BurgerApp.dto.request.RequestSupplyDto;
@@ -16,7 +15,7 @@ import java.util.List;
 @Service
 @Builder
 @RequiredArgsConstructor
-public class IngredientService{
+public class IngredientService {
 
     private final IngredientRepository ingredientRepository;
 
@@ -34,12 +33,13 @@ public class IngredientService{
             }
         }
     }
-    public void supplyIngredient(int id, RequestSupplyDto supplyDto){
-        ingredientRepository.updateIngredientResidue(id,supplyDto.supplyQuantity());
+
+    public void supplyIngredient(int id, RequestSupplyDto supplyDto) {
+        ingredientRepository.updateIngredientResidue(id, supplyDto.supplyQuantity());
         System.out.println("Ингредиент поставлен");
     }
 
-    public List<Ingredient> ingredientList(){
+    public List<Ingredient> ingredientList() {
         return ingredientRepository.findAll();
     }
 }

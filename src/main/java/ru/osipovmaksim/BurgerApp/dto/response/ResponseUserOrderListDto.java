@@ -12,17 +12,16 @@ public record ResponseUserOrderListDto(int id, List<BurgerPosition> positions) {
         this(id, parsePositionsJson(positionsJson));
     }
 
-    // Метод для преобразования JSON в список объектов
     private static List<BurgerPosition> parsePositionsJson(String positionsJson) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(positionsJson, new TypeReference<List<BurgerPosition>>() {});
+            return objectMapper.readValue(positionsJson, new TypeReference<List<BurgerPosition>>() {
+            });
         } catch (IOException e) {
             e.printStackTrace();
-            return List.of(); // Если ошибка, возвращаем пустой список
+            return List.of();
         }
     }
-
-    // Вложенный класс для позиции бургера
-    public record BurgerPosition(String burgerName, int quantity) {}
+    public record BurgerPosition(String burgerName, int quantity) {
+    }
 }

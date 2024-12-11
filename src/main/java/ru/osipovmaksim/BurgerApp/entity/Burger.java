@@ -1,8 +1,7 @@
 package ru.osipovmaksim.BurgerApp.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 
 import java.math.BigDecimal;
@@ -11,7 +10,10 @@ import java.math.BigDecimal;
 @Setter
 @DynamicInsert
 @Entity
+@Builder
+@NoArgsConstructor
 @Table(name = "burgers")
+@AllArgsConstructor
 public class Burger {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -5,7 +5,7 @@ import ru.osipovmaksim.BurgerApp.entity.Burger;
 
 import java.util.Optional;
 
-public interface BurgerRepository extends JpaRepository<Burger,Long> {
+public interface BurgerRepository extends JpaRepository<Burger, Long> {
 
     Optional<Burger> findById(int id);
 }

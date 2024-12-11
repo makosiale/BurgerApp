@@ -3,11 +3,11 @@ package ru.osipovmaksim.BurgerApp.contollers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.osipovmaksim.BurgerApp.dto.EmployeeDto;
+import ru.osipovmaksim.BurgerApp.dto.request.RequestAddBurgerDto;
 import ru.osipovmaksim.BurgerApp.dto.request.RequestEmployeeDto;
 import ru.osipovmaksim.BurgerApp.dto.response.ResponseEmployeeDto;
 import ru.osipovmaksim.BurgerApp.dto.response.ResponseOrderSummaryDto;
-import ru.osipovmaksim.BurgerApp.repository.EmployeeRepository;
+import ru.osipovmaksim.BurgerApp.service.BurgerService;
 import ru.osipovmaksim.BurgerApp.service.EmployeeService;
 import ru.osipovmaksim.BurgerApp.service.OrderService;
 
@@ -23,30 +23,42 @@ public class AdminController {
 
     private final OrderService orderService;
     private final EmployeeService employeeService;
+    private final BurgerService burgerService;
 
     @GetMapping("/orders")
-    public ResponseEntity<List<ResponseOrderSummaryDto>> getOrders(){
+    public ResponseEntity<List<ResponseOrderSummaryDto>> getOrders() {
         System.out.println(orderService.getAllOrders());
         return ResponseEntity.ok().body(orderService.getAllOrders());
     }
 
     @GetMapping("/employees")
-    public ResponseEntity<List<ResponseEmployeeDto>> getEmployees(){
+    public ResponseEntity<List<ResponseEmployeeDto>> getEmployees() {
         return ResponseEntity.ok().body(employeeService.getEmployees());
     }
 
     @PostMapping("/orders/{orderId}/assign")
     public void assignEmployee(
             @PathVariable int orderId,
-            @RequestBody RequestEmployeeDto requestEmployeeDto){
-        employeeService.assignEmployeeForOrder(orderId,requestEmployeeDto);
+            @RequestBody RequestEmployeeDto requestEmployeeDto) {
+        employeeService.assignEmployeeForOrder(orderId, requestEmployeeDto);
     }
 
     @GetMapping("/orders/total-revenue")
-    public ResponseEntity<Map<String,Integer>> getTotalRevenue(){
-        Map<String,Integer> answer = new HashMap<>();
+    public ResponseEntity<Map<String, Integer>> getTotalRevenue() {
+        Map<String, Integer> answer = new HashMap<>();
         answer.put("totalRevenue", orderService.getTotalRevenue());
         return ResponseEntity.ok(answer);
+    }
+
+
+    @PostMapping("/burgers/newBurger")
+    public void addNewIngredient(@RequestBody RequestAddBurgerDto requestAddBurgerDto) {
+        burgerService.addNewBurger(requestAddBurgerDto);
+    }
+
+    @DeleteMapping("/orders/delete-order")
+    public void deleteOrder(@RequestParam int orderId) {
+        orderService.deleteOrder(orderId);
     }
 }
 
