@@ -19,11 +19,11 @@
 **ER-диаграмма базы данных**
 
 ![image](https://github.com/user-attachments/assets/66da3262-7835-4f31-8097-ca82af4ca0fc)
-
+<br>
 
 **Физическая модель базы данных**
 ![image](https://github.com/user-attachments/assets/f1f3cc65-5399-4e99-8011-cd6e5a244f21)
-
+<br>
 
 ## Технические возможности 
 
