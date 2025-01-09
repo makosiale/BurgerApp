@@ -22,6 +22,7 @@
 <br>
 
 **Физическая модель базы данных**
+<br>
 ![image](https://github.com/user-attachments/assets/f1f3cc65-5399-4e99-8011-cd6e5a244f21)
 <br>
 
