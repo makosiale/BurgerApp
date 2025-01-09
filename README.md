@@ -16,6 +16,15 @@
 
 ![image](https://github.com/user-attachments/assets/fb86a446-1f2b-4ba8-aa2f-b49ccbf3ad83)
 
+**ER-диаграмма базы данных**
+
+![image](https://github.com/user-attachments/assets/66da3262-7835-4f31-8097-ca82af4ca0fc)
+
+
+**Физическая модель базы данных**
+![image](https://github.com/user-attachments/assets/f1f3cc65-5399-4e99-8011-cd6e5a244f21)
+
+
 ## Технические возможности 
 
 ### Эндпоинты
